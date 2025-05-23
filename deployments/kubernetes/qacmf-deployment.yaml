@@ -1,0 +1,217 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qacmf-system
+  labels:
+    name: qacmf-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qacmf-config
+  namespace: qacmf-system
+data:
+  config.yaml: |
+    algorithm_layers:
+      master_key:
+        plugin: "pthash-v2"
+        rotation_interval: "90d"
+      sub_key1:
+        plugin: "kyber-1024"
+        hybrid_mode: "ecdh-secp384r1"
+      path_chain:
+        plugin: "xmss-l16"
+
+    protocols:
+      tls:
+        enabled: true
+        cipher_suites: ["TLS_KYBER_AES256_SHA384"]
+      blockchain:
+        dual_signature: true
+
+    hardware:
+      tpm:
+        enabled: false
+      hsm:
+        config_path: "/etc/qacmf/hsm.json"
+
+    logging:
+      level: "INFO"
+      format: "json"
+  
+  hsm-config.json: |
+    {
+      "vendor": "Thales",
+      "model": "Luna HSM 7",
+      "key_slots": {
+        "master_key": {"slot_id": 0, "access_policy": "dual_control"},
+        "session_keys": {"slot_id": 1, "auto_rotate": true}
+      }
+    }
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: qacmf-secrets
+  namespace: qacmf-system
+type: Opaque
+data:
+  hsm_password: <base64-encoded-password>
+  api_key: <base64-encoded-api-key>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qacmf-server
+  namespace: qacmf-system
+  labels:
+    app: qacmf-server
+    version: v2.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: qacmf-server
+  template:
+    metadata:
+      labels:
+        app: qacmf-server
+        version: v2.0
+    spec:
+      serviceAccountName: qacmf-service-account
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+      - name: qacmf
+        image: qacmf/framework:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        env:
+        - name: QACMF_CONFIG_PATH
+          value: "/etc/qacmf/config.yaml"
+        - name: QACMF_LOG_LEVEL
+          value: "INFO"
+        - name: HSM_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: qacmf-secrets
+              key: hsm_password
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/qacmf
+          readOnly: true
+        - name: hsm-keys
+          mountPath: /var/lib/qacmf/keys
+        - name: logs
+          mountPath: /var/log/qacmf
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: config-volume
+        configMap:
+          name: qacmf-config
+      - name: hsm-keys
+        persistentVolumeClaim:
+          claimName: qacmf-keys-pvc
+      - name: logs
+        emptyDir: {}
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      tolerations:
+      - key: "qacmf"
+        operator: "Equal"
+        value: "dedicated"
+        effect: "NoSchedule"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qacmf-service
+  namespace: qacmf-system
+  labels:
+    app: qacmf-server
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 8443
+    protocol: TCP
+    name: https
+  selector:
+    app: qacmf-server
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qacmf-keys-pvc
+  namespace: qacmf-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qacmf-service-account
+  namespace: qacmf-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: qacmf-system
+  name: qacmf-role
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: qacmf-rolebinding
+  namespace: qacmf-system
+subjects:
+- kind: ServiceAccount
+  name: qacmf-service-account
+  namespace: qacmf-system
+roleRef:
+  kind: Role
+  name: qacmf-role
+  apiGroup: rbac.authorization.k8s.io 

@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+src/qacmf.egg-info/PKG-INFO
+src/qacmf.egg-info/SOURCES.txt
+src/qacmf.egg-info/dependency_links.txt
+src/qacmf.egg-info/requires.txt
+src/qacmf.egg-info/top_level.txt

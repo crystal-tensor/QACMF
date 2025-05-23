@@ -1,0 +1,47 @@
+Metadata-Version: 2.4
+Name: qacmf
+Version: 2.0.0
+Summary: 量子安全密码学迁移框架
+Author-email: QACMF团队 <contact@qacmf.org>
+License: MIT
+Project-URL: Homepage, https://github.com/qacmf/qacmf-framework
+Project-URL: Bug Tracker, https://github.com/qacmf/qacmf-framework/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Security :: Cryptography
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: pycryptodome>=3.15.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: cryptography>=37.0.0
+Requires-Dist: liboqs-python>=0.7.2
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: black>=22.3.0; extra == "dev"
+Requires-Dist: isort>=5.10.1; extra == "dev"
+Provides-Extra: hsm
+Requires-Dist: pkcs11>=0.7.0; extra == "hsm"
+
+# QACMF - 量子安全密码学迁移框架
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
+QACMF (Quantum-Aware Cryptography Migration Framework) 是一个全面的框架，旨在帮助组织和开发者将现有的密码系统迁移到抗量子密码学解决方案。随着量子计算的快速发展，传统的密码算法（如RSA和ECC）面临着被量子计算机破解的风险。QACMF提供了一套工具和方法，使这种迁移过程更加简单、安全和可靠。
+
+## 主要特性
+
+- **多层密钥管理**：实现主密钥和子密钥的分层管理，支持密钥的生成、存储、轮换和销毁
+- **抗量子哈希链**：使用抗量子哈希算法实现密钥路径验证，确保密钥更新的连续性和完整性
+- **插件系统**：支持动态加载不同的密码算法实现，包括后量子密码算法
+- **安全沙箱**：为插件提供隔离的执行环境，防止恶意代码执行
+- **配置管理**：灵活的配置系统，支持不同环境和应用场景
+- **适配器接口**：提供与现有系统集成的适配器，简化迁移过程
+
+## 安装
+
+### 使用 pip 安装
+
+```bash
+pip install qacmf

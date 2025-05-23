@@ -1,0 +1,22 @@
+algorithm_layers:
+  master_key:
+    plugin: "pthash-v2"  # 抗量子哈希算法
+    rotation_interval: "90d"
+  sub_key1:
+    plugin: "kyber-1024"
+    hybrid_mode: "ecdh-secp384r1"
+  path_chain:
+    plugin: "xmss-l16"
+
+protocols:
+  tls:
+    enabled: true
+    cipher_suites: ["TLS_KYBER_AES256_SHA384"]
+  blockchain:
+    dual_signature: true
+
+hardware:
+  tpm:
+    enabled: false
+  hsm:
+    config_path: "/etc/qacmf/hsm.json"

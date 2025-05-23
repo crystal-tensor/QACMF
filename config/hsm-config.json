@@ -1,0 +1,8 @@
+{
+  "vendor": "Thales",
+  "model": "Luna HSM 7",
+  "key_slots": {
+    "master_key": {"slot_id": 0, "access_policy": "dual_control"},
+    "session_keys": {"slot_id": 1, "auto_rotate": true}
+  }
+}
