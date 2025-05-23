@@ -1,4 +1,4 @@
-# QACMF - 抗量子安全密码迁移框架
+# QACMF - 多级联动和可插拔密钥组件的抗量子密码迁移安全协议和框架
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
