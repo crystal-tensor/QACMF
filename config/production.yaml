@@ -1,0 +1,285 @@
+# QACMF生产环境配置
+# 针对高性能、高可用生产环境优化
+
+# 算法层配置
+algorithm_layers:
+  master_key:
+    plugin: "pthash-v2"
+    rotation_interval: "30d"  # 生产环境更频繁的轮换
+    backup_count: 5
+    hsm_enabled: true
+    
+  sub_key1:
+    plugin: "kyber-1024"
+    hybrid_mode: "ecdh-secp384r1"
+    cache_enabled: true
+    cache_size: 1000
+    
+  sub_key2:
+    plugin: "dilithium5"
+    batch_verification: true
+    precompute_enabled: true
+    
+  path_chain:
+    plugin: "xmss-l16"
+    state_preservation: true
+    forward_secure: true
+
+# 协议适配器配置
+protocols:
+  tls:
+    enabled: true
+    cipher_suites:
+      - "TLS_KYBER_AES256_SHA384"
+      - "TLS_DILITHIUM_AES256_SHA384"
+      - "TLS_HYBRID_AES256_SHA384"
+    session_cache_size: 10000
+    session_timeout: 3600
+    
+  ssh:
+    enabled: true
+    host_key_algorithms:
+      - "ssh-dilithium5"
+      - "ssh-kyber1024"
+    kex_algorithms:
+      - "kyber1024-sha384"
+      
+  vpn:
+    enabled: true
+    protocol: "wireguard-pq"
+    
+  blockchain:
+    enabled: true
+    dual_signature: true
+    consensus_algorithm: "pq-pbft"
+
+# 硬件安全模块配置
+hardware:
+  hsm:
+    enabled: true
+    vendor: "Thales"
+    model: "Luna HSM 7"
+    partition: "qacmf-prod"
+    config_path: "/etc/qacmf/hsm-prod.json"
+    backup_hsm:
+      enabled: true
+      address: "10.0.1.100"
+    
+  tpm:
+    enabled: true
+    version: "2.0"
+    pcr_banks: ["sha256", "sha384"]
+
+# 密钥管理配置
+key_management:
+  storage:
+    primary:
+      type: "hsm"
+      encryption: "aes-256-gcm"
+    backup:
+      type: "distributed"
+      nodes: 3
+      threshold: 2
+      
+  rotation:
+    auto_rotation: true
+    master_key_interval: "30d"
+    sub_key_interval: "7d"
+    session_key_interval: "1h"
+    
+  escrow:
+    enabled: true
+    parties: 3
+    threshold: 2
+    audit_trail: true
+
+# 性能优化配置
+performance:
+  threading:
+    worker_threads: 16
+    io_threads: 8
+    crypto_threads: 8
+    
+  memory:
+    max_heap_size: "8G"
+    key_cache_size: "1G"
+    session_cache_size: "512M"
+    
+  networking:
+    max_connections: 10000
+    connection_timeout: 30
+    keepalive_timeout: 300
+    
+  crypto:
+    hardware_acceleration: true
+    batch_operations: true
+    precomputation: true
+
+# 安全配置
+security:
+  authentication:
+    methods: ["mtls", "oauth2", "saml"]
+    multi_factor: true
+    session_management: true
+    
+  authorization:
+    rbac_enabled: true
+    policy_enforcement: "strict"
+    privilege_escalation: false
+    
+  audit:
+    enabled: true
+    log_level: "detailed"
+    retention_period: "7y"
+    tamper_detection: true
+    
+  network:
+    firewall_enabled: true
+    rate_limiting: true
+    ddos_protection: true
+    intrusion_detection: true
+
+# 监控和日志配置
+monitoring:
+  metrics:
+    enabled: true
+    exporter: "prometheus"
+    endpoint: "/metrics"
+    scrape_interval: "15s"
+    
+  health_checks:
+    enabled: true
+    interval: "30s"
+    timeout: "10s"
+    endpoints:
+      - "/health"
+      - "/ready"
+      - "/live"
+      
+  alerting:
+    enabled: true
+    channels: ["email", "slack", "pagerduty"]
+    rules:
+      - name: "high_cpu_usage"
+        condition: "cpu_usage > 80"
+        severity: "warning"
+      - name: "key_rotation_failure"
+        condition: "key_rotation_failed"
+        severity: "critical"
+      - name: "hsm_unavailable"
+        condition: "hsm_status != 'online'"
+        severity: "critical"
+
+logging:
+  level: "INFO"
+  format: "json"
+  output:
+    - type: "file"
+      path: "/var/log/qacmf/qacmf.log"
+      rotation: "daily"
+      retention: "30d"
+      max_size: "100M"
+    - type: "syslog"
+      facility: "local0"
+      tag: "qacmf"
+    - type: "elk"
+      endpoint: "https://elasticsearch.company.com:9200"
+      index: "qacmf-logs"
+      
+  structured:
+    enabled: true
+    fields:
+      - "timestamp"
+      - "level"
+      - "component"
+      - "operation"
+      - "user_id"
+      - "session_id"
+      - "request_id"
+
+# 高可用配置
+high_availability:
+  clustering:
+    enabled: true
+    mode: "active-active"
+    nodes:
+      - "qacmf-node-1.company.com"
+      - "qacmf-node-2.company.com"
+      - "qacmf-node-3.company.com"
+    load_balancer: "nginx"
+    
+  failover:
+    enabled: true
+    detection_timeout: "30s"
+    switchover_time: "60s"
+    automatic: true
+    
+  backup:
+    enabled: true
+    strategy: "continuous"
+    retention:
+      daily: 30
+      weekly: 12
+      monthly: 12
+      yearly: 7
+    compression: true
+    encryption: true
+
+# 合规性配置
+compliance:
+  standards:
+    - "FIPS 140-2 Level 3"
+    - "Common Criteria EAL4+"
+    - "NIST SP 800-208"
+    - "ISO 27001"
+    - "SOC 2 Type II"
+    
+  auditing:
+    enabled: true
+    real_time: true
+    automated_reporting: true
+    
+  data_protection:
+    encryption_at_rest: true
+    encryption_in_transit: true
+    key_escrow: true
+    data_classification: true
+    
+  geographic_restrictions:
+    export_control: true
+    data_residency: "US,EU"
+    cross_border_restrictions: true
+
+# 部署配置
+deployment:
+  environment: "production"
+  region: "us-east-1"
+  availability_zones: ["us-east-1a", "us-east-1b", "us-east-1c"]
+  
+  kubernetes:
+    namespace: "qacmf-prod"
+    replicas: 3
+    resources:
+      requests:
+        cpu: "2000m"
+        memory: "4Gi"
+      limits:
+        cpu: "4000m"
+        memory: "8Gi"
+    affinity:
+      pod_anti_affinity: true
+      node_affinity: "production-nodes"
+      
+  network:
+    service_mesh: "istio"
+    ingress: "nginx"
+    load_balancer: "aws-alb"
+    ssl_termination: "passthrough"
+
+# 开发和调试配置（生产环境关闭）
+development:
+  debug_mode: false
+  profiling: false
+  test_mode: false
+  mock_hsm: false
+  verbose_logging: false 
