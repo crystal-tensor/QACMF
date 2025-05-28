@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Welcome to the QACMF Admin Interface</h1>
+    <p>This is the main dashboard for managing algorithms and system configurations.</p>
+    
+    {% if current_user.is_authenticated %}
+        <p>You are logged in as: <strong>{{ current_user.username }}</strong></p>
+    {% else %}
+        <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to continue.</p>
+    {% endif %}
+    
+    <!-- More dashboard content will go here -->
+{% endblock %}

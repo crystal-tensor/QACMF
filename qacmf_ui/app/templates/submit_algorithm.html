@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Submit New Algorithm</h2>
+    <form method="POST" action="{{ url_for('submit_algorithm') }}" enctype="multipart/form-data" class="styled-form">
+        <p>
+            <label for="name">Algorithm Name:</label>
+            <input type="text" id="name" name="name" required value="{{ request.form.name if request and request.form else '' }}">
+        </p>
+        <p>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="5" required>{{ request.form.description if request and request.form else '' }}</textarea>
+        </p>
+        <p>
+            <label for="version">Version (e.g., 1.0.0):</label>
+            <input type="text" id="version" name="version" required value="{{ request.form.version if request and request.form else '' }}">
+        </p>
+        <p>
+            <label for="config_file">Configuration File (e.g., .json, .yaml, .ini):</label>
+            <input type="file" id="config_file" name="config_file" required>
+            <small>This file should contain configuration parameters for your algorithm.</small>
+        </p>
+        <p>
+            <label for="api_spec_file">API Specification (e.g., OpenAPI .json, .yaml, or plain text):</label>
+            <input type="file" id="api_spec_file" name="api_spec_file" required>
+            <small>This file defines the API your algorithm exposes, if applicable.</small>
+        </p>
+        <p>
+            <label for="plugin_file">Plugin File (e.g., .py, .zip containing your code):</label>
+            <input type="file" id="plugin_file" name="plugin_file" required>
+            <small>This is the actual executable code for your algorithm.</small>
+        </p>
+        <p>
+            <input type="submit" value="Submit Algorithm for Review" class="button">
+        </p>
+    </form>
+    
+    <p><a href="{{ url_for('index') }}" class="button-link">Back to Dashboard</a></p>
+
+<style>
+    .styled-form p {
+        margin-bottom: 15px;
+    }
+    .styled-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .styled-form input[type="text"],
+    .styled-form textarea,
+    .styled-form input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; /* Ensures padding doesn't affect overall width */
+    }
+    .styled-form textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+    .styled-form input[type="file"] {
+        padding: 5px; /* Less padding for file inputs as they have their own internal styling */
+    }
+    .styled-form small {
+        display: block;
+        margin-top: 3px;
+        font-size: 0.9em;
+        color: #666;
+    }
+    .styled-form .button, .button-link {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 1em;
+        cursor: pointer;
+        text-align: center;
+    }
+    .styled-form .button:hover, .button-link:hover {
+        background-color: #0056b3;
+    }
+    .button-link {
+        background-color: #6c757d;
+        margin-top: 10px;
+    }
+    .button-link:hover {
+        background-color: #545b62;
+    }
+</style>
+{% endblock %}

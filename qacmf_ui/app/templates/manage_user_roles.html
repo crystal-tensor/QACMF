@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Manage Roles for {{ user.username }}</h2>
+    <form method="POST" action="{{ url_for('admin_manage_user_roles', user_id=user.id) }}">
+        <p>Select roles for {{ user.username }}:</p>
+        {% for role in all_roles %}
+            <div>
+                <input type="checkbox" name="roles" value="{{ role.id }}" id="role_{{ role.id }}"
+                       {% if role.id in user_role_ids %}checked{% endif %}>
+                <label for="role_{{ role.id }}">{{ role.name }}</label>
+            </div>
+        {% endfor %}
+        <br>
+        <input type="submit" value="Update Roles">
+    </form>
+    <p><a href="{{ url_for('admin_users_list') }}">Back to User List</a></p>
+{% endblock %}

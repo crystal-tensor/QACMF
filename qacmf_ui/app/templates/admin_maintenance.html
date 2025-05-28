@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .maintenance-task-list { list-style: none; padding: 0; }
+    .maintenance-task-list li {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .task-info h4 { margin: 0 0 5px 0; }
+    .task-info p { margin: 0; font-size: 0.9em; color: #555; }
+    .task-actions .button {
+        padding: 8px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.95em;
+        cursor: pointer;
+    }
+    .task-actions .button:hover { background-color: #0056b3; }
+</style>
+
+<h2>System Maintenance Tasks</h2>
+
+{% if tasks %}
+    <ul class="maintenance-task-list">
+        {% for task in tasks %}
+        <li>
+            <div class="task-info">
+                <h4>{{ task.name | replace('_', ' ') | title }}</h4>
+                <p>{{ task.description }}</p>
+            </div>
+            <div class="task-actions">
+                <form method="POST" action="{{ url_for('admin_run_maintenance_task', task_name=task.name) }}" style="display: inline;">
+                    <button type="submit" class="button">Run Task</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No maintenance tasks defined.</p>
+{% endif %}
+
+<p><a href="{{ url_for('index') }}" class="button-link" style="display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-top: 20px;">Back to Dashboard</a></p>
+
+{% endblock %}
