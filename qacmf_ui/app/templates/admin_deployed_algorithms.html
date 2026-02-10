@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .table-wrapper { overflow-x: auto; }
+    table.styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 0.9em;
+    }
+    table.styled-table th, table.styled-table td {
+        border: 1px solid #ddd;
+        padding: 8px 12px;
+        text-align: left;
+    }
+    table.styled-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    table.styled-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .status-active { color: #28a745; font-weight: bold; }
+    .status-inactive { color: #ffc107; font-weight: bold; }
+    .status-error { color: #dc3545; font-weight: bold; }
+    .config-override-display {
+        max-height: 100px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        padding: 5px;
+        border: 1px solid #e9ecef;
+        border-radius: 3px;
+        white-space: pre-wrap; /* To wrap long lines and preserve whitespace */
+        word-break: break-all;
+    }
+</style>
+
+<h2>View Deployed Algorithms</h2>
+
+{% if algorithms %}
+<div class="table-wrapper">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Deployment ID</th>
+                <th>Algorithm Name</th>
+                <th>Version</th>
+                <th>Deployed On</th>
+                <th>Deployment Status</th>
+                <th>Business Context</th>
+                <th>Config Override</th>
+                <th>Original Submitter</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dep_alg in algorithms %}
+            <tr>
+                <td>{{ dep_alg.id }}</td>
+                <td>{{ dep_alg.submitted_algorithm.name if dep_alg.submitted_algorithm else 'N/A' }}</td>
+                <td>{{ dep_alg.submitted_algorithm.version if dep_alg.submitted_algorithm else 'N/A' }}</td>
+                <td>{{ dep_alg.deployment_date.strftime('%Y-%m-%d %H:%M') if dep_alg.deployment_date else 'N/A' }}</td>
+                <td><span class="status-{{ dep_alg.status.lower() if dep_alg.status else 'unknown' }}">{{ dep_alg.status if dep_alg.status else 'Unknown' }}</span></td>
+                <td>{{ dep_alg.business_context if dep_alg.business_context else 'N/A' }}</td>
+                <td>
+                    {% if dep_alg.config_override %}
+                    <div class="config-override-display">
+                        {{ dep_alg.config_override }}
+                    </div>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>{{ dep_alg.submitted_algorithm.developer.username if dep_alg.submitted_algorithm and dep_alg.submitted_algorithm.developer else 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No algorithms have been deployed yet.</p>
+{% endif %}
+
+<p><a href="{{ url_for('index') }}" class="button-link" style="display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-top: 20px;">Back to Dashboard</a></p>
+
+{% endblock %}

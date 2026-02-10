@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .table-wrapper { overflow-x: auto; }
+    table.styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 0.9em;
+    }
+    table.styled-table th, table.styled-table td {
+        border: 1px solid #ddd;
+        padding: 8px 12px;
+        text-align: left;
+    }
+    table.styled-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    table.styled-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .action-form { margin-top: 5px; margin-bottom: 5px; }
+    .action-form select, .action-form input[type="text"], .action-form textarea {
+        padding: 6px;
+        margin-right: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .action-form textarea { width: 90%; min-height: 60px; resize: vertical; }
+    .action-form .button {
+        padding: 8px 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .action-form .button-danger { background-color: #dc3545; }
+    .action-form .button-success { background-color: #28a745; }
+    .action-form .button-warning { background-color: #ffc107; color: black; }
+    .action-form .button:hover { opacity: 0.9; }
+    .status-pending_review { color: #ffc107; font-weight: bold; }
+    .status-approved { color: #28a745; font-weight: bold; }
+    .status-rejected { color: #dc3545; font-weight: bold; }
+    .details-section { margin-top: 10px; padding: 10px; background-color: #e9ecef; border-radius: 4px;}
+    .details-section p { margin: 5px 0; }
+</style>
+
+<h2>Manage Submitted Algorithms</h2>
+
+{% if algorithms %}
+<div class="table-wrapper">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Submitter</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Plugin Path</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alg in algorithms %}
+            <tr>
+                <td>{{ alg.id }}</td>
+                <td>{{ alg.name }}</td>
+                <td>{{ alg.version }}</td>
+                <td>{{ alg.developer.username if alg.developer else 'N/A' }}</td>
+                <td>{{ alg.submission_date.strftime('%Y-%m-%d %H:%M') if alg.submission_date else 'N/A' }}</td>
+                <td><span class="status-{{ alg.status.lower() }}">{{ alg.status }}</span></td>
+                <td>{{ alg.approved_plugin_path if alg.approved_plugin_path else 'N/A' }}</td>
+                <td>
+                    {# Status Change Form #}
+                    <form method="POST" action="{{ url_for('admin_set_algorithm_status', algorithm_id=alg.id) }}" class="action-form">
+                        <select name="status">
+                            <option value="pending_review" {% if alg.status == 'pending_review' %}selected{% endif %}>Pending Review</option>
+                            <option value="approved" {% if alg.status == 'approved' %}selected{% endif %}>Approve</option>
+                            <option value="rejected" {% if alg.status == 'rejected' %}selected{% endif %}>Reject</option>
+                        </select>
+                        <button type="submit" class="button button-warning">Update Status</button>
+                    </form>
+
+                    {# Deploy Form (Conditional) #}
+                    {% if alg.status == 'approved' and alg.approved_plugin_path %}
+                    <div class="details-section">
+                        <strong>Deploy {{ alg.name }} v{{ alg.version }}</strong>
+                        <form method="POST" action="{{ url_for('admin_deploy_algorithm', algorithm_id=alg.id) }}" class="action-form">
+                            <p>
+                                <label for="business_context_{{ alg.id }}">Business Context:</label><br>
+                                <input type="text" id="business_context_{{ alg.id }}" name="business_context" value="General Use" style="width: 90%;">
+                            </p>
+                            <p>
+                                <label for="config_override_{{ alg.id }}">Configuration Override (JSON/YAML):</label><br>
+                                <textarea id="config_override_{{ alg.id }}" name="config_override" placeholder="Optional: e.g., {'param': 'value'}"></textarea>
+                            </p>
+                            <button type="submit" class="button button-success">Deploy Algorithm</button>
+                        </form>
+                    </div>
+                    {% elif alg.status == 'approved' and not alg.approved_plugin_path %}
+                    <p style="color: red;">Cannot deploy: Plugin path missing despite 'approved' status.</p>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No algorithms submitted yet.</p>
+{% endif %}
+
+<p><a href="{{ url_for('index') }}" class="button-link" style="display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-top: 20px;">Back to Dashboard</a></p>
+
+{% endblock %}
